@@ -1,0 +1,9 @@
+CHANGES IN VERSION 0.99.0
+-------------------------
+
+NEW FEATURES
+
+    * Initial release of spatialDESeq.
+    * Added rcpp_spatial_weights C++ engine for fast physical tissue coordinate weight mapping.
+    * Implemented parallelized spatial GLM framework with library-size normalization offset vectors.
+    * Added plotSpatialDESeq, plotVolcano, and runExplorer interactive dashboard.

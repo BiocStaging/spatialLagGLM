@@ -1,0 +1,18 @@
+name: BioC-Check
+
+on: [push, pull_request]
+
+jobs:
+  bioc-check:
+    runs-on: ubuntu-latest
+    container: bioconductor/bioconductor_docker:devel
+    steps:
+      - uses: actions/checkout@v4
+      - name: Dependencies
+        run: |
+          Rscript -e "options(repos = BiocManager::repositories()); remotes::install_deps(dependencies = TRUE)"
+          Rscript -e "BiocManager::install(c('BiocCheck', 'testthat', 'knitr', 'rmarkdown'))"
+      - name: Build and Check
+        run: |
+          Rscript -e "rcmdcheck::rcmdcheck(args = '--no-manual', error_on = 'error')"
+          Rscript -e "BiocCheck::BiocCheck('.')"

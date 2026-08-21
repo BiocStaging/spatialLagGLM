@@ -1,0 +1,22 @@
+---
+title: "Introduction to spatialDESeq"
+author: "Sahal Paladan"
+date: "`r Sys.Date()`"
+output: BiocStyle::html_document
+vignette: >
+  %\VignetteIndexEntry{Introduction to spatialDESeq}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+## Complete Execution Run
+```{r test_pipeline, message=FALSE}
+library(spatialDESeq)
+se <- make_mock_spatial()
+analyzed <- spatialDESeq(se, design = ~ condition, radius = 2.5)
+head(SummarizedExperiment::rowData(analyzed))
+```
+## Session Information
+```{r session_info}
+sessionInfo()
+```

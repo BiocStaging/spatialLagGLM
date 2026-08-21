@@ -1,0 +1,33 @@
+Package: spatialDESeq
+Title: Spatial Differential Expression via Spatial Autoregressive GLMs
+Version: 0.99.0
+Authors@R: person("Sahal", "Paladan", email = "sahalpaladan@gmail.com", role = c("aut", "cre"))
+Description: Extends negative binomial generalized linear models to spatial 
+    transcriptomics by incorporating physical coordinate distance matrices 
+    as local smoothing covariates.
+License: MIT + file LICENSE
+Encoding: UTF-8
+biocViews: GeneExpression, RNASeq, Sequencing, Spatial, Transcriptomics, DifferentialExpression, Software
+URL: https://github.com
+BugReports: https://github.com/issues
+Depends:
+    R (>= 4.4.0)
+Imports:
+    methods,
+    SpatialExperiment (>= 1.12.0),
+    SummarizedExperiment (>= 1.32.0),
+    BiocParallel (>= 1.36.0),
+    Rcpp (>= 1.0.11),
+    ggplot2 (>= 3.4.0),
+    stats
+LinkingTo: 
+    Rcpp,
+    RcppArmadillo (>= 0.12.0)
+Suggests: 
+    testthat (>= 3.0.0),
+    shiny (>= 1.8.0),
+    BiocStyle (>= 2.30.0),
+    knitr (>= 1.45),
+    rmarkdown (>= 2.25)
+VignetteBuilder: knitr
+Config/roxygen2/version: 8.0.0
