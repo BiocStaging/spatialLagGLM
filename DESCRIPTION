@@ -1,6 +1,6 @@
 Package: spatialDESeq
 Title: Spatial Differential Expression via Spatial Autoregressive GLMs
-Version: 0.99.0
+Version: 0.99.1
 Authors@R: person("Sahal", "Paladan", email = "sahalpaladan@gmail.com", role = c("aut", "cre"))
 Description: Extends negative binomial generalized linear models to spatial 
     transcriptomics by incorporating physical coordinate distance matrices 
