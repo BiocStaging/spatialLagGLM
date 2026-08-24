@@ -17,6 +17,7 @@ Imports:
     SpatialExperiment (>= 1.12.0),
     SummarizedExperiment (>= 1.32.0),
     BiocParallel (>= 1.36.0),
+    BiocGenerics,
     Rcpp (>= 1.0.11),
     ggplot2 (>= 3.4.0),
     stats
