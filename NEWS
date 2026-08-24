@@ -1,3 +1,11 @@
+CHANGES IN VERSION 0.99.2
+-------------------------
+
+BUG FIXES AND CLEANUP
+
+    * Expanded Description paragraph length to pass substantive validation metrics.
+    * Shifted BiocGenerics allocation array parameters into the primary Depends metadata field.
+
 CHANGES IN VERSION 0.99.1
 -------------------------
 

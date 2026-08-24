@@ -1,23 +1,21 @@
 Package: spatialDESeq
 Title: Spatial Differential Expression via Spatial Autoregressive GLMs
-Version: 0.99.1
+Version: 0.99.2
 Authors@R: person("Sahal", "Paladan", email = "sahalpaladan@gmail.com", role = c("aut", "cre"))
-Description: Extends negative binomial generalized linear models to spatial 
-    transcriptomics by incorporating physical coordinate distance matrices 
-    as local smoothing covariates.
+Description: A robust, parallelized statistical framework optimized for identifying spatially differential expression in high-throughput spatial transcriptomics datasets. The package extends standard negative binomial generalized linear models (GLMs) by incorporating continuous physical tissue spot coordinates as distance-weighted local smoothing covariates. This configuration models spatial context seamlessly without relying on pre-annotated categorical tissue clusters. The underlying distance matrix evaluations and coordinate smoothing routines are accelerated natively via an optimized C++ Armadillo matrix engine to guarantee computational efficiency. Built to integrate natively into the Bioconductor ecosystem, the package operates directly on SpatialExperiment containers, incorporates robust library-size normalization scaling factor offsets, calculates adjusted p-values for multi-gene profiles, and supplies an interactive Shiny-based point-and-click visualization dashboard tool for downstream exploratory data analysis.
 License: MIT + file LICENSE
 Encoding: UTF-8
 biocViews: GeneExpression, RNASeq, Sequencing, Spatial, Transcriptomics, DifferentialExpression, Software
 URL: https://github.com
 BugReports: https://github.com/issues
 Depends:
-    R (>= 4.4.0)
+    R (>= 4.4.0),
+    BiocGenerics
 Imports:
     methods,
     SpatialExperiment (>= 1.12.0),
     SummarizedExperiment (>= 1.32.0),
     BiocParallel (>= 1.36.0),
-    BiocGenerics,
     Rcpp (>= 1.0.11),
     ggplot2 (>= 3.4.0),
     stats
