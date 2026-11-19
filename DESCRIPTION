@@ -1,32 +1,50 @@
-Package: spatialDESeq
-Title: Spatial Differential Expression via Spatial Autoregressive GLMs
-Version: 0.99.2
-Authors@R: person("Sahal", "Paladan", email = "sahalpaladan@gmail.com", role = c("aut", "cre"))
-Description: A robust, parallelized statistical framework optimized for identifying spatially differential expression in high-throughput spatial transcriptomics datasets. The package extends standard negative binomial generalized linear models (GLMs) by incorporating continuous physical tissue spot coordinates as distance-weighted local smoothing covariates. This configuration models spatial context seamlessly without relying on pre-annotated categorical tissue clusters. The underlying distance matrix evaluations and coordinate smoothing routines are accelerated natively via an optimized C++ Armadillo matrix engine to guarantee computational efficiency. Built to integrate natively into the Bioconductor ecosystem, the package operates directly on SpatialExperiment containers, incorporates robust library-size normalization scaling factor offsets, calculates adjusted p-values for multi-gene profiles, and supplies an interactive Shiny-based point-and-click visualization dashboard tool for downstream exploratory data analysis.
+Package: spatialLagGLM
+Title: Spatial Lag Regression for Spatial Transcriptomics
+Version: 0.99.3
+Authors@R: 
+    person("Sahal", "Paladan", email = "sahalpaladan@gmail.com",
+        role = c("aut", "cre"),
+        comment = c(ORCID = "0009-0005-0120-128X"))
+Description: Tests each gene in spatial transcriptomics data for association
+    between a spot's expression and the expression of its neighbours. For every
+    gene, a quasi-Poisson generalized linear model is fitted with a
+    library-size offset, user-defined design terms from the colData, and the
+    spatial lag of the gene's own normalised counts as an additional covariate.
+    The lag is a row-normalised, inverse-distance weighted mean over spots
+    within a given radius, computed separately for each sample. The
+    coefficient, p-value and adjusted p-value of the lag are stored in the
+    rowData of the input SpatialExperiment. Weights are computed in C++ with
+    RcppArmadillo, and genes are fitted in parallel with BiocParallel. The
+    p-values are intended for exploratory use. Plotting functions and a Shiny
+    explorer are included.
 License: MIT + file LICENSE
 Encoding: UTF-8
-biocViews: GeneExpression, RNASeq, Sequencing, Spatial, Transcriptomics, DifferentialExpression, Software
-URL: https://github.com
-BugReports: https://github.com/issues
+biocViews: GeneExpression, Normalization, Regression, RNASeq,
+    Software, Spatial, Transcriptomics
+URL: https://github.com/sahalpaladan/spatialLagGLM
+BugReports: https://github.com/sahalpaladan/spatialLagGLM/issues
 Depends:
-    R (>= 4.4.0),
-    BiocGenerics
+    R (>= 4.5.0)
 Imports:
-    methods,
-    SpatialExperiment (>= 1.12.0),
-    SummarizedExperiment (>= 1.32.0),
     BiocParallel (>= 1.36.0),
+    Matrix,
+    methods,
     Rcpp (>= 1.0.11),
+    S4Vectors,
+    SpatialExperiment (>= 1.12.0),
+    stats,
+    SummarizedExperiment (>= 1.32.0),
     ggplot2 (>= 3.4.0),
-    stats
+    utils
 LinkingTo: 
     Rcpp,
     RcppArmadillo (>= 0.12.0)
 Suggests: 
-    testthat (>= 3.0.0),
-    shiny (>= 1.8.0),
     BiocStyle (>= 2.30.0),
     knitr (>= 1.45),
-    rmarkdown (>= 2.25)
+    rmarkdown (>= 2.25),
+    shiny (>= 1.8.0),
+    STexampleData,
+    testthat (>= 3.0.0)
 VignetteBuilder: knitr
-Config/roxygen2/version: 8.0.0
+Config/roxygen2/version: 8.1.0

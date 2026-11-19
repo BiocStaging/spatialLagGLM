@@ -1,3 +1,17 @@
+CHANGES IN VERSION 0.99.3
+-------------------------
+ o Package renamed from spatialDESeq to spatialLagGLM; functions renamed to
+   spatialLagGLM(), plotSpatialLag(), plotLagVolcano(),
+   runSpatialLagExplorer() and makeMockSpatial().
+ o Description, documentation and vignette now describe the model as a
+   quasi-Poisson regression with a spatially lagged covariate; p-values are
+   documented as exploratory.
+ o Spatial weights are computed per sample_id and stored sparsely.
+ o Added argument checks, 'assay.type' and 'size.factors' arguments, and a
+   warning reporting failed gene fits.
+ o plotSpatialLag(metric = "spatial_lag") now plots the spatial lag.
+ o Rewrote the vignette and added unit tests for all exported functions.
+
 CHANGES IN VERSION 0.99.2
 -------------------------
 

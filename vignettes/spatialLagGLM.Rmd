@@ -1,0 +1,360 @@
+---
+title: "Spatial lag regression with spatialLagGLM"
+author: "Sahal Paladan"
+date: "`r Sys.Date()`"
+output: BiocStyle::html_document
+vignette: >
+  %\VignetteIndexEntry{Spatial lag regression with spatialLagGLM}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>", message = FALSE)
+has_ste <- requireNamespace("STexampleData", quietly = TRUE)
+```
+
+# Introduction
+
+`spatialLagGLM` asks, gene by gene, whether the expression at a spot is
+associated with the expression at the spots around it, in spatial
+transcriptomics data stored in a `SpatialExperiment`. For each gene it fits a
+quasi-Poisson regression with a library-size offset, optional design terms
+from `colData`, and the *spatial lag* of the gene's own normalised counts as
+an extra covariate. The lag coefficient, its p-value and its adjusted p-value
+are written to `rowData()` of the input object.
+
+## Relation to existing packages
+
+Several methods already find spatially variable genes (SVGs). SPARK-X
+[Zhu et al. 2021], nnSVG [Weber et al. 2023] and SpatialDE
+[Svensson et al. 2018] test whether
+a gene's expression has spatial covariance structure, using kernel or Gaussian
+process models, and they target any spatial pattern. Moran's I is the
+classical autocorrelation statistic.
+
+`spatialLagGLM` is a simpler regression-style alternative. What it offers is:
+
+* results stored in the `SpatialExperiment` you pass in;
+* a `design` formula, so that the lag is tested while adjusting for
+  `colData` variables such as a cluster or condition;
+* neighbours defined within each sample separately, so multi-sample objects
+  are handled directly.
+
+What it does not offer is the statistical track record of the methods above.
+The p-values come from a quasi-Poisson fit that has not been shown to be
+calibrated for this test (see [Checking calibration] and [Limitations]). If
+you need a well-established SVG test, use one of the packages above; use
+`spatialLagGLM` for exploratory screening and for design-adjusted lag
+estimates, and confirm hits independently.
+
+# Installation
+
+```{r install, eval = FALSE}
+if (!requireNamespace("BiocManager", quietly = TRUE)) {
+    install.packages("BiocManager")
+}
+BiocManager::install("spatialLagGLM")
+```
+
+# The model
+
+For one gene, let $y_i$ be the count at spot $i$. The model is
+
+$$\log E[y_i] = \log(s_i) + X_i\beta + \gamma\, l_i,
+\qquad l_i = \sum_j w_{ij}\,\frac{y_j}{s_j},$$
+
+fitted with a quasi-Poisson family. Here $s_i$ is the size factor of spot $i$
+(library size divided by the geometric mean of library sizes), $X_i$ is the
+row of the design matrix, and $w_{ij}$ are weights: the inverse distance
+between spots $i$ and $j$ if they are within `radius` of each other (and in
+the same sample), zero otherwise, with each row scaled to sum to one. A spot
+with no neighbours has $l_i = 0$.
+
+The **null hypothesis** is $\gamma = 0$: given the offset and the design
+terms, the expression at a spot is not associated with the weighted mean of
+the normalised expression of its neighbours. The **effect size** reported is
+$\hat\gamma$.
+
+Because $l_i$ is built from the same gene's counts, this is **not** a spatial
+autoregressive (SAR) model.
+
+# Input data
+
+The package ships a simulated dataset: a 30 x 30 grid of spots and 50 genes.
+Spots within 7 units of the centre are labelled `TumorCore`, the rest
+`Margin`. `Gene1` is up-regulated in the core; the other 49 genes are
+simulated without any spatial pattern.
+
+```{r mock}
+library(spatialLagGLM)
+library(SpatialExperiment)
+set.seed(1)
+se <- makeMockSpatial()
+se
+table(se$condition)
+```
+
+The function needs a `SpatialExperiment` with a raw-count assay, spatial
+coordinates, and a `sample_id` column in `colData` (which every
+`SpatialExperiment` has). Spots with zero total counts must be removed
+first.
+
+# Running the analysis
+
+```{r run-condition}
+res <- spatialLagGLM(se, design = ~condition, radius = 2.5)
+head(SummarizedExperiment::rowData(res), 3)
+```
+
+## Arguments
+
+`design`
+: A formula using `colData` variables, e.g. `~ condition`. Use `~ 1` for no
+  adjustment. With `~ condition`, the lag is tested after allowing a
+  different mean in each condition, so a pattern that is fully explained by
+  `condition` is *not* reported. Compare:
+
+```{r run-intercept}
+res0 <- spatialLagGLM(se, design = ~1, radius = 2.5)
+rd <- SummarizedExperiment::rowData
+cols <- c("spatial_effect_size", "p_value")
+out <- rbind(
+    as.data.frame(rd(res)["Gene1", cols]),
+    as.data.frame(rd(res0)["Gene1", cols])
+)
+rownames(out) <- c("~ condition", "~ 1")
+out
+```
+
+`radius`
+: A positive number: the distance within which spots count as neighbours, in
+  the units of `spatialCoords(se)`. See [Choosing the radius].
+
+`assay.type`
+: The assay holding raw counts (default `"counts"`).
+
+`size.factors`
+: Optional. By default size factors come from the library sizes of the assay
+  you pass in. If you subset genes before the analysis, pass size factors
+  computed from all genes (see the real-data example).
+
+`BPPARAM`
+: A `BiocParallelParam`, e.g. `BiocParallel::MulticoreParam(4)`. Genes are
+  fitted in parallel.
+
+## Several samples
+
+Weights are computed separately for each value of `colData(se)$sample_id`,
+so spots in different sections are never neighbours. All samples are assumed
+to share the same coordinate units, because one `radius` is used for all.
+
+# Output
+
+The input object is returned with three new columns in `rowData()`:
+
+`spatial_effect_size`
+: $\hat\gamma$, the change in the log expected count per unit increase in the
+  neighbours' weighted mean normalised count. Positive means a spot tends to
+  be high where its neighbours are high.
+
+`p_value`
+: The quasi-Poisson t-test p-value for $\gamma = 0$.
+
+`adjusted_p_value`
+: Benjamini-Hochberg adjustment of `p_value` across genes.
+
+`NA` is returned for genes whose fit failed or did not converge, and a warning
+reports how many. The radius, assay and size factors used are kept in
+`S4Vectors::metadata(res)$spatialLagGLM`.
+
+Two points on interpretation. First, the effect size is in units of
+normalised counts, so it depends on how highly a gene is expressed: a
+highly expressed gene has a smaller $\hat\gamma$ for the same relative
+pattern. Compare genes by p-value, not by effect size, and treat the effect
+size cutoff in the volcano plot as a display choice. Second, the p-values are
+exploratory (see below).
+
+# Plots
+
+`plotSpatialLag()` draws a gene on the tissue coordinates, either as raw
+counts or as its spatial lag (the covariate used in the model).
+
+```{r plot-expression, fig.height = 4, fig.width = 5}
+plotSpatialLag(res0, "Gene1", metric = "expression")
+```
+
+```{r plot-lag, fig.height = 4, fig.width = 5}
+plotSpatialLag(res0, "Gene1", metric = "spatial_lag")
+```
+
+`plotLagVolcano()` shows effect size against adjusted p-value for all genes.
+
+```{r volcano, fig.height = 4, fig.width = 5}
+plotLagVolcano(res0)
+```
+
+An interactive explorer combining both is available with
+`runSpatialLagExplorer(res0)` (requires the `shiny` package).
+
+# Choosing the radius
+
+`radius` sets the scale at which neighbours are defined. Too small and many
+spots have no neighbours; too large and the lag becomes a smooth regional
+average. A practical starting point is a small multiple of the typical
+nearest-neighbour distance. On the mock grid, spots are one unit apart, so
+`radius = 1.5` includes the 8 surrounding spots and `radius = 2.5` the 20
+nearest.
+
+```{r radius}
+coords <- spatialCoords(se)
+d <- as.matrix(dist(coords))
+diag(d) <- Inf
+median(apply(d, 1, min))
+```
+
+It is worth checking that conclusions do not change much over a few
+radii:
+
+```{r radius-sens}
+p_by_radius <- vapply(c(1.5, 2.5, 4), function(r) {
+    out <- spatialLagGLM(se, design = ~1, radius = r)
+    rd(out)["Gene1", "p_value"]
+}, numeric(1))
+names(p_by_radius) <- c(1.5, 2.5, 4)
+p_by_radius
+```
+
+# Example on real data
+
+This example uses a 10x Visium sample of human dorsolateral prefrontal
+cortex from the `STexampleData` package. To keep the vignette fast we analyse
+the 300 most highly expressed genes. Because `spatialLagGLM()` derives size
+factors from the genes it is given, we compute them first from *all* genes and
+pass them in.
+
+```{r real-load, eval = has_ste}
+library(STexampleData)
+spe <- Visium_humanDLPFC()
+spe <- spe[, as.logical(spe$in_tissue)]
+counts_all <- SummarizedExperiment::assay(spe, "counts")
+spe <- spe[, colSums(counts_all) > 0]
+
+counts_all <- SummarizedExperiment::assay(spe, "counts")
+lib <- colSums(counts_all)
+sf <- lib / exp(mean(log(lib)))
+
+top <- order(rowSums(counts_all), decreasing = TRUE)[seq_len(300)]
+spe <- spe[top, ]
+dim(spe)
+```
+
+The coordinates are in image pixels. We set the radius to 1.5 times the
+median nearest-neighbour distance, which captures the first ring of
+neighbours on the Visium hexagonal grid.
+
+```{r real-radius, eval = has_ste}
+xy <- spatialCoords(spe)
+d <- as.matrix(dist(xy))
+diag(d) <- Inf
+radius <- 1.5 * median(apply(d, 1, min))
+radius
+```
+
+```{r real-run, eval = has_ste}
+res_real <- spatialLagGLM(
+    spe,
+    design = ~1, radius = radius, size.factors = sf,
+    BPPARAM = BiocParallel::SerialParam()
+)
+tab <- as.data.frame(
+    SummarizedExperiment::rowData(res_real)[, c(
+        "spatial_effect_size", "p_value", "adjusted_p_value"
+    )]
+)
+head(tab[order(tab$p_value), ], 5)
+```
+
+```{r real-plot, eval = has_ste, fig.height = 4, fig.width = 5}
+top_gene <- rownames(tab)[which.min(tab$p_value)]
+plotSpatialLag(res_real, top_gene, metric = "spatial_lag")
+```
+
+# Checking calibration
+
+The quasi-Poisson p-values have not been shown to be calibrated for this
+test, so check them on your data. The mock data gives a first look: genes 2
+to 50 have no spatial pattern, so under a calibrated test about 5% of their
+p-values would fall below 0.05.
+
+```{r calib, fig.height = 3.5, fig.width = 5}
+null_p <- rd(res0)$p_value[-1]
+mean(null_p < 0.05)
+hist(null_p,
+    breaks = 20, main = "Genes 2-50 (no spatial pattern)",
+    xlab = "p-value"
+)
+```
+
+In a simulation by the package author (independent negative binomial genes on
+this grid, design `~ 1`, 40 replicates), about 18% of null p-values were below
+0.05. The p-values are therefore **anti-conservative** and a small p-value
+should not be read as 0.05-level evidence.
+
+A permutation null gives an empirical reference. Permuting the spots
+(columns) of the count matrix keeps each spot's library size but breaks any
+link between expression and location. Running the method on permuted data
+shows what p-values to expect from no spatial signal:
+
+```{r perm}
+perm_counts <- SummarizedExperiment::assay(se, "counts")[, sample(ncol(se))]
+colnames(perm_counts) <- colnames(se)
+perm <- se
+SummarizedExperiment::assay(perm, "counts") <- perm_counts
+res_perm <- spatialLagGLM(perm, design = ~1, radius = 2.5)
+perm_p <- rd(res_perm)$p_value
+obs_p <- rd(res0)$p_value
+
+mean(perm_p < 0.05)
+## Empirical p-value: how often a permuted gene is at least as extreme.
+emp_p <- vapply(
+    obs_p, function(p) {
+        (1 + sum(perm_p <= p)) / (1 + length(perm_p))
+    },
+    numeric(1)
+)
+emp_p["Gene1"]
+```
+
+With only 50 genes the permutation null is coarse. With a full dataset, pool
+several permutations and use the pooled p-values the same way.
+
+# Limitations
+
+* The p-values are exploratory and anti-conservative in simulation. Confirm
+  hits with an established SVG method and a permutation null.
+* The model is not a spatial autoregressive model; it regresses a gene on the
+  lag of its own counts.
+* Effect sizes depend on expression level and are not comparable across genes.
+* The results depend on `radius`.
+* Counts are converted to a dense matrix. Datasets with many tens of
+  thousands of spots will need a lot of memory.
+
+# Session information
+
+```{r session-info}
+sessionInfo()
+```
+
+# References
+
+* Righelli D, et al. (2022). SpatialExperiment: infrastructure for spatially
+  resolved transcriptomics data in R using Bioconductor. *Bioinformatics*.
+* Svensson V, Teichmann SA, Stegle O (2018). SpatialDE: identification of
+  spatially variable genes. *Nature Methods*.
+* Weber LM, et al. (2023). nnSVG for the scalable identification of spatially
+  variable genes using nearest-neighbor Gaussian processes. *Nature
+  Communications*.
+* Zhu J, Sun S, Zhou X (2021). SPARK-X: non-parametric modeling enables
+  scalable and robust detection of spatial expression patterns for large
+  spatial transcriptomic studies. *Genome Biology*.

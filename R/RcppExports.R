@@ -5,11 +5,9 @@
 #' @param coords Numeric matrix of physical spots coordinates.
 #' @param radius Distance radius.
 #' @return Matrix of physical distance weights.
-#' @examples
-#' coords <- matrix(runif(20), ncol = 2)
-#' rcpp_spatial_weights(coords, radius = 0.5)
-#' @export
+#' @keywords internal
+#' @noRd
 rcpp_spatial_weights <- function(coords, radius) {
-    .Call(`_spatialDESeq_rcpp_spatial_weights`, coords, radius)
+    .Call(`_spatialLagGLM_rcpp_spatial_weights`, coords, radius)
 }
 

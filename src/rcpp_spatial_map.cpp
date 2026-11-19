@@ -7,10 +7,8 @@ using namespace Rcpp;
 //' @param coords Numeric matrix of physical spots coordinates.
 //' @param radius Distance radius.
 //' @return Matrix of physical distance weights.
-//' @examples
-//' coords <- matrix(runif(20), ncol = 2)
-//' rcpp_spatial_weights(coords, radius = 0.5)
-//' @export
+//' @keywords internal
+//' @noRd
 // [[Rcpp::export]]
 arma::mat rcpp_spatial_weights(arma::mat coords, double radius) {
     int n = coords.n_rows;

@@ -1,89 +1,82 @@
-# spatialDESeq
+# spatialLagGLM
 
-<!-- Badges Grid Layout -->
-[![BiocCheck Status](https://shields.io)](https://github.com)
-[![R-CMD-check](https://shields.io)](https://github.com)
-[![Ecosystem](https://shields.io)](https://bioconductor.org)
-[![License: MIT](https://shields.io)](https://opensource.org)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-**spatialDESeq** introduces an accelerated, parallelized framework optimized for spatial transcriptomics datasets. It extends standard negative binomial generalized linear models (GLMs) by incorporating physical tissue spot coordinates as distance-weighted local smoothing covariates, compiled natively via a C++ Armadillo matrix engine.
+`spatialLagGLM` tests, gene by gene, whether the expression at a spot is
+associated with the expression at neighbouring spots in spatial
+transcriptomics data. It works on `SpatialExperiment` objects and stores its
+results in `rowData()`.
 
-## 🌟 Key Functional Enhancements
-* **`RcppArmadillo` Engine**: Avoids slow native loops by executing physical tissue distance mapping within a compiled vector space.
-* **Continuous Neighborhood Smoothing**: Avoids hard category constraints by evaluating coordinate transcript densities.
-* **Bioconductor Container Integration**: Operates natively on standard `SpatialExperiment` structures.
-* **Point-and-Click Dashboard**: Built-in interactive workspace browser for local execution.
+For each gene it fits a quasi-Poisson regression with a library-size offset,
+optional design terms from `colData`, and the spatial lag of the gene's own
+normalised counts as an extra covariate. The lag is an inverse-distance
+weighted mean over spots within a given radius, computed separately for each
+sample. Weights are computed in C++ (RcppArmadillo) and genes are fitted in
+parallel with BiocParallel.
 
----
+**Note on the statistics.** The null hypothesis is that the lag coefficient is
+zero. The model is not a spatial autoregressive model, and the p-values are
+exploratory: in simulation they were anti-conservative. See the vignette
+sections on calibration and limitations before interpreting results. For a
+well-established spatially variable gene test, consider SPARK-X, nnSVG or
+SpatialDE.
 
-## 💾 System Installation
+## Installation
 
-Install the package directly from your R workspace console using the `devtools` engine:
+Once the package is accepted by Bioconductor:
 
 ```r
 if (!requireNamespace("BiocManager", quietly = TRUE)) {
     install.packages("BiocManager")
 }
-
-# Install core infrastructure environments
-BiocManager::install(c("SpatialExperiment", "SummarizedExperiment", "BiocParallel"))
-
-# Install spatialDESeq directly from source
-devtools::install_github("sahalpaladan/spatialDESeq")
+BiocManager::install("spatialLagGLM")
 ```
 
----
-
-## 🧬 Quick-Start Code Workflow
-
-Evaluate a complete modeling run using the built-in synthetic tissue generator matrix:
+The development version from GitHub:
 
 ```r
-library(spatialDESeq)
-library(SpatialExperiment)
-library(SummarizedExperiment)
-
-# 1. Generate a mock tissue slide grid (50 genes, 900 spots)
-se_raw <- make_mock_spatial()
-
-# 2. Run the C++ accelerated spatial autoregressive solver
-# Targets adjacent spatial coordinates within a radius footprint
-se_analyzed <- spatialDESeq(se_raw, design = ~ condition, radius = 2.5)
-
-# 3. Inspect calculated metrics appended to your object
-head(rowData(se_analyzed))
-
-# 4. Generate spatial context profile plots
-plotSpatialDESeq(se_analyzed, gene_id = "Gene1", metric = "spatial_effect")
-
-# 5. Open the interactive point-and-click visualization dashboard board
-runExplorer(se_analyzed)
+BiocManager::install("sahalpaladan/spatialLagGLM")
 ```
 
----
-
-## 📊 Run Analytics on Real 10x Genomics Visium Data
+## Quick start
 
 ```r
-library(STexampleData)
+library(spatialLagGLM)
 
-# Load real public human brain tissue coordinates
-se_real <- STexampleData::Visium_humanDLPFC()
-rownames(se_real) <- make.names(rownames(se_real))
+# Simulated 30 x 30 grid, 50 genes; Gene1 is high in a central region
+se <- makeMockSpatial()
 
-# Process spatial matrix engine (Radius tuned to large pixel grids)
-se_results <- spatialDESeq(se_real[1:100, ], design = ~ ground_truth, radius = 150)
+# Test the spatial lag, adjusting for `condition`
+res <- spatialLagGLM(se, design = ~condition, radius = 2.5)
+head(SummarizedExperiment::rowData(res))
 
-# Display multi-gene summary Volcano metrics
-plotVolcano(se_results, alpha = 0.05, effect_cutoff = 0.5)
+# Plot a gene and the summary of all genes
+plotSpatialLag(res, gene_id = "Gene1", metric = "spatial_lag")
+plotLagVolcano(res)
+
+# Interactive explorer (requires the shiny package)
+runSpatialLagExplorer(res)
 ```
 
----
+`Gene1` is explained by `condition` in this example, so it is not reported
+with `design = ~condition`; use `design = ~1` to see it. The vignette explains
+this and how to choose `radius` and `design`.
 
-## 📋 Software Development Guidelines
+## Real data
 
-### Bug Reports & Contributions
-If you identify scaling bottlenecks, please submit an entry directly to the [GitHub Issues Portal](https://github.com/issues). 
+A worked example on 10x Visium human DLPFC data from `STexampleData`, including
+how to supply size factors when analysing a subset of genes, is in the
+vignette:
 
-### Licensing
-This software ecosystem operates under the strict guidelines of the **MIT License**. See the `LICENSE` file for more details.
+```r
+vignette("spatialLagGLM", package = "spatialLagGLM")
+```
+
+## Reporting problems
+
+Please open an issue at
+<https://github.com/sahalpaladan/spatialLagGLM/issues>.
+
+## License
+
+MIT. See the `LICENSE` file.

@@ -1,0 +1,14 @@
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+*.Rcheck/
+*.tar.gz
+inst/doc
+vignettes/*.html
+vignettes/*_files
+vignettes/*_cache
+# compiled objects
+*.o
+*.so
+*.dll

@@ -13,7 +13,7 @@ Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 
 // rcpp_spatial_weights
 arma::mat rcpp_spatial_weights(arma::mat coords, double radius);
-RcppExport SEXP _spatialDESeq_rcpp_spatial_weights(SEXP coordsSEXP, SEXP radiusSEXP) {
+RcppExport SEXP _spatialLagGLM_rcpp_spatial_weights(SEXP coordsSEXP, SEXP radiusSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -25,11 +25,11 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_spatialDESeq_rcpp_spatial_weights", (DL_FUNC) &_spatialDESeq_rcpp_spatial_weights, 2},
+    {"_spatialLagGLM_rcpp_spatial_weights", (DL_FUNC) &_spatialLagGLM_rcpp_spatial_weights, 2},
     {NULL, NULL, 0}
 };
 
-RcppExport void R_init_spatialDESeq(DllInfo *dll) {
+RcppExport void R_init_spatialLagGLM(DllInfo *dll) {
     R_registerRoutines(dll, NULL, CallEntries, NULL, NULL);
     R_useDynamicSymbols(dll, FALSE);
 }
