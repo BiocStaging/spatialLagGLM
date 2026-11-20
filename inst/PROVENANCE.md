@@ -17,8 +17,17 @@ Files with substantial AI assistance carry a provenance comment at the top
 
 ## Review and testing
 
-TODO (maintainer): describe in your own words what you reviewed and how, and
-delete this line.
+The code was first generated with Google Gemini and revised with Claude in
+response to the Bioconductor review. I checked the result as follows:
+
+- I ran the unit tests (55 pass), built the package and the vignette, and ran
+  `R CMD check --as-cran` and `BiocCheck` locally.
+- I ran the example analysis on the simulated data and on the STexampleData
+  Visium example, and looked at the outputs and plots.
+- I read the R code in `R/spatialLagGLM.R` and the model description in the
+  vignette, and I understand that the model regresses a gene on the spatial
+  lag of its own counts, that it is not a SAR model, and that the p-values
+  are exploratory.
 
 The package was tested with the unit tests in `tests/testthat/`, the vignette
 (simulated data and the STexampleData Visium example), `R CMD check
