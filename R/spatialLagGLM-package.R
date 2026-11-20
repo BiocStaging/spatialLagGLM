@@ -1,3 +1,4 @@
+## Provenance: Gemini (original), Claude (revision). See inst/PROVENANCE.md.
 #' spatialLagGLM: Spatial Lag Regression for Spatial Transcriptomics
 #'
 #' Fits, for every gene, a quasi-Poisson regression with a library-size

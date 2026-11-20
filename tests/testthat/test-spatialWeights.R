@@ -1,3 +1,4 @@
+## Provenance: Gemini (original), Claude (revision). See inst/PROVENANCE.md.
 test_that("weights match a hand-computed example", {
     ## Points on a line at x = 0, 1, 2; all pairs lie within radius 2.5.
     ## The C++ uses weights 1/d, row-normalised, self excluded:

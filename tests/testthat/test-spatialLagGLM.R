@@ -1,3 +1,4 @@
+## Provenance: Gemini (original), Claude (revision). See inst/PROVENANCE.md.
 set.seed(1)
 se <- makeMockSpatial()
 

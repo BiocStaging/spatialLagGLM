@@ -1,3 +1,4 @@
+## Provenance: Gemini (original), Claude (revision). See inst/PROVENANCE.md.
 test_that("makeMockSpatial gives the documented object", {
     se <- makeMockSpatial()
     expect_s4_class(se, "SpatialExperiment")

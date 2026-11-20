@@ -1,3 +1,4 @@
+## Provenance: Gemini (original), Claude (revision). See inst/PROVENANCE.md.
 ## Quiets R CMD check about non-standard evaluation in ggplot2 aesthetics.
 utils::globalVariables(c(
     "X", "Y", "Value", "sample_id",

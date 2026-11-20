@@ -1,3 +1,4 @@
+## Provenance: Gemini (original), Claude (revision). See inst/PROVENANCE.md.
 #' Generate Mock Spatial Transcriptomics Data
 #'
 #' Simulates a 30 x 30 grid of spots and 50 negative binomial genes. Spots

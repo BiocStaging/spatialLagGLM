@@ -1,3 +1,4 @@
+## Provenance: Gemini (original), Claude (revision). See inst/PROVENANCE.md.
 #' Plot a Gene on the Tissue Coordinates
 #'
 #' Plots either the raw counts of a gene or its spatial lag (the weighted mean

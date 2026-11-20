@@ -1,3 +1,4 @@
+## Provenance: Gemini (original), Claude (revision). See inst/PROVENANCE.md.
 #' Volcano Plot of Spatial Lag Results
 #'
 #' @param se A \code{SpatialExperiment} analysed with

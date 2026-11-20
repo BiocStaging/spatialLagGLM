@@ -1,3 +1,4 @@
+// Provenance: Gemini (original), Claude (revision). See inst/PROVENANCE.md.
 #include <RcppArmadillo.h>
 // [[Rcpp::depends(RcppArmadillo)]]
 

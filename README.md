@@ -77,6 +77,11 @@ vignette("spatialLagGLM", package = "spatialLagGLM")
 Please open an issue at
 <https://github.com/sahalpaladan/spatialLagGLM/issues>.
 
+## Provenance
+
+This package was created with Google Gemini and revised with Claude (Anthropic). Details are in
+[`inst/PROVENANCE.md`](inst/PROVENANCE.md).
+
 ## License
 
 MIT. See the `LICENSE` file.

@@ -1,3 +1,4 @@
+## Provenance: Gemini (original), Claude (revision). See inst/PROVENANCE.md.
 ## Two interleaved samples ("A" = odd spots, "B" = even spots), so a mix-up
 ## between samples would be detectable.
 makeTwoSampleMock <- function() {

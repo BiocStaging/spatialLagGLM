@@ -1,3 +1,4 @@
+## Provenance: Gemini (original), Claude (revision). See inst/PROVENANCE.md.
 #' Launch Interactive Spatial Lag Explorer
 #'
 #' @param se A \code{SpatialExperiment} analysed with

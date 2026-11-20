@@ -1,3 +1,4 @@
+## Provenance: Gemini (original), Claude (revision). See inst/PROVENANCE.md.
 #' Quasi-Poisson Regression with a Spatially Lagged Covariate
 #'
 #' For every gene, fits a quasi-Poisson regression with a library-size offset,
