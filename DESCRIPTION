@@ -1,6 +1,6 @@
 Package: spatialLagGLM
 Title: Spatial Lag Regression for Spatial Transcriptomics
-Version: 0.99.3
+Version: 0.99.4
 Authors@R: 
     person("Sahal", "Paladan", email = "sahalpaladan@gmail.com",
         role = c("aut", "cre"),
